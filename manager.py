@@ -5,10 +5,10 @@ from flask import session
 from flask_script import Manager
 from flask_migrate import Migrate,MigrateCommand
 from flask_session import Session
-from iHome import app,db
+from iHome import get_app,db
 
-
-
+"""选择不同模式得到的flask对象app"""
+app = get_app('dev')
 
 """创建脚本管理器"""
 manager = Manager(app)
@@ -18,10 +18,6 @@ Migrate(app,db)
 
 """将数据库迁移的脚本，命令添加到脚本管理器对象"""
 manager.add_command('db',MigrateCommand)
-
-"""将session数据写入redis数据库"""
-Session(app)
-
 
 
 @app.route('/')
