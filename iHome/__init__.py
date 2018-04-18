@@ -36,6 +36,10 @@ def get_app(class_name):
     """
     CSRFProtect(app)
 
+    """哪里用到蓝图注册，哪里导入"""
+    from iHome.api_1_0 import api
+    app.register_blueprint(api)
+
     """将session数据写入redis数据库"""
     Session(app)
 

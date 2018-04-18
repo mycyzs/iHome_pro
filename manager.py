@@ -7,6 +7,7 @@ from flask_migrate import Migrate,MigrateCommand
 from flask_session import Session
 from iHome import get_app,db
 
+
 """选择不同模式得到的flask对象app"""
 app = get_app('dev')
 
@@ -20,14 +21,10 @@ Migrate(app,db)
 manager.add_command('db',MigrateCommand)
 
 
-@app.route('/')
-def index():
-    """测试redis是否链接"""
-    # redis_strict.set('name','python')
-    """测试session过期时间"""
-    # session['celery'] = 1000
-    return 'index'
 
 if __name__ == '__main__':
+    """查看路由映射的函数"""
+    # print app.url_map
+
     """在manager启动那个开关编辑runserver，才可以点击运行"""
     manager.run()
