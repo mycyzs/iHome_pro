@@ -18,8 +18,11 @@ def get_static_html(file_name):
     if not file_name:
         file_name = 'index.html'
 
-    """主要拼接路径"""
-    file_name = 'html/%s'%file_name
+    """网站图标，浏览器默认会访问127.0.0.1:500/favicon.ico"""
+    if file_name != 'favicon.ico':
+
+        """主要拼接路径"""
+        file_name = 'html/%s'%file_name
 
     """根据全路径，寻找文件并且响应给浏览器，开启上下文环境
         send_static_file 默认就会找到127.0.0.1：5000/static/ 所以拼接后面的就额可以类
