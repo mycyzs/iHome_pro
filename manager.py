@@ -6,7 +6,7 @@ from flask_script import Manager
 from flask_migrate import Migrate,MigrateCommand
 from flask_session import Session
 from iHome import get_app,db
-
+from iHome import models   #导入才可以进行数据库迁移
 
 """选择不同模式得到的flask对象app"""
 app = get_app('dev')
