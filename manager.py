@@ -24,7 +24,7 @@ manager.add_command('db',MigrateCommand)
 
 if __name__ == '__main__':
     """查看路由映射的函数"""
-    # print app.url_map
+    print app.url_map
 
     """在manager启动那个开关编辑runserver，才可以点击运行"""
     manager.run()
