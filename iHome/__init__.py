@@ -31,7 +31,9 @@ def get_app(class_name):
     """创建链接redis的对象"""
     redis_strict = redis.StrictRedis(host=configs[class_name].REDIS_HOST,port=configs[class_name].REDIS_PORT)
 
-    """开启csrf保护，防止跨站伪造请求，post，path，put，delete方法会开启，flask中要自己将csrf_token写入浏览器的cookie"""
+    """开启csrf保护，防止跨站伪造请求，post，path，put，delete方法会开启，flask中要自己将csrf_token写入浏览器的cookie
+        csrf_token写入session，所以要secret_key
+    """
     CSRFProtect(app)
 
     """将session数据写入redis数据库"""
