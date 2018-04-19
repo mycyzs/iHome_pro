@@ -8,3 +8,5 @@ api = Blueprint('api_1_0',__name__,url_prefix='/api/1.0')
 
 """执行这个文件的时候导入并且执行"""
 from iHome.api_1_0 import index
+"""执行创建验证码的文件"""
+from iHome.api_1_0 import verify
