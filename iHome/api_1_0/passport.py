@@ -8,7 +8,7 @@ from flask import json
 from flask import request
 
 from iHome import redis_strict, db
-from iHome.api_1_0 import api
+from . import api
 from iHome.models import User
 from iHome.utils.response_code import RET
 
@@ -39,11 +39,11 @@ def register():
     if not all([mobile,sms_code,password]):
         return jsonify(reeno=RET.PARAMERR,errmsg='缺少参数')
     # 判断手机号是否符合格式
-    if not re.match(r'^1[345678][0-9]{9}$]',mobile):
+    if not re.match(r'^1[345678][0-9]{9}$',mobile):
         return jsonify(reeno=RET.PARAMERR,errmsg='手机还格式错误')
     # 获取服务器短信验证码，有可能过期类获取不到
     try:
-        sms_code_server = redis_strict.get('SMS：%s'%mobile)
+        sms_code_server = redis_strict.get('SMS：%s'%mobile.encode('utf-8'))
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(reeno=RET.DBERR,errmsg='获取服务器验证码错误')
@@ -55,7 +55,8 @@ def register():
     # 把用户信息保存到数据库，完成注册流程
     user = User()
     user.mobile = mobile
-    user.password_hash = password
+    # 需要将密码加密后保存到数据库:调用password属性的setter方法,这里只是赋一个属性，并不是表中的字段
+    user.password = password
     user.name = mobile
 
     # 将对象保存到数据库
