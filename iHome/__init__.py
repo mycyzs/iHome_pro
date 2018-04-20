@@ -37,7 +37,7 @@ def SetLoggerLevel(level):
 def get_app(class_name):
 
     """根据不同阶段获取日志等级"""
-    SetLoggerLevel(configs['class_name'].level)
+    SetLoggerLevel(configs[class_name].level)
 
     app = Flask(__name__)
 

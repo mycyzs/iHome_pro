@@ -2,6 +2,8 @@
 """这里是获取静态文件"""
 from flask import Blueprint
 from flask import current_app
+from flask import make_response
+from flask.ext.wtf.csrf import generate_csrf
 
 """创建静态文件蓝图"""
 html_blue = Blueprint('web_html',__name__)
@@ -23,9 +25,17 @@ def get_static_html(file_name):
 
         """主要拼接路径"""
         file_name = 'html/%s'%file_name
+    """创建响应的对象,falsk中需要自己把csrf_token写入浏览器cookie"""
+    response = make_response(current_app.send_static_file(file_name))
+
+    """生成csrf_token"""
+    csrf_token = generate_csrf()
+
+    """将csrf_token写入cookie"""
+    response.set_cookie('csrf_token',csrf_token)
 
     """根据全路径，寻找文件并且响应给浏览器，开启上下文环境
         send_static_file 默认就会找到127.0.0.1：5000/static/ 所以拼接后面的就额可以类
     """
-    return current_app.send_static_file(file_name)
+    return response
 

@@ -46,14 +46,20 @@ class ScpS(object):
 
 
         result = self.rest.sendTemplateSMS(to, datas, tempId)
-        for k, v in result.iteritems():
+        print result.get('statusCode')
 
-            if k == 'templateSMS':
-                for k, s in v.iteritems():
-                    print '%s:%s' % (k, s)
-            else:
-                print '%s:%s' % (k, v)
+        """判断发送 成功与否"""
+        if result.get('statusCode') == '000000':
+            return 1
+        else:
+            return 0
+#
 
+        # smsMessageSid:03
+        # d77fbe6831497db29db2efa2b67091
+        # dateCreated:20180419202305
+        # statusCode:000000
+# ScpS().sendTemplateSMS('15920407822',['666666',5],1)
 
 
 # 发送模板短信
@@ -77,6 +83,6 @@ class ScpS(object):
 #                     print '%s:%s' % (k, s)
 #         else:
 #             print '%s:%s' % (k, v)
-    
-   
+#
+#
 # sendTemplateSMS('15920407822',['666666',5],1)
