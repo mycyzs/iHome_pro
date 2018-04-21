@@ -6,11 +6,61 @@ from flask import Flask, jsonify
 from flask import current_app
 from flask import json
 from flask import request
+from flask import session
 
 from iHome import redis_strict, db
 from . import api
 from iHome.models import User
 from iHome.utils.response_code import RET
+
+
+
+
+
+
+@api.route('/sessions',methods=['POST'])
+def login():
+    """处理登录逻辑"""
+    """
+    1.获取用户输入的信息
+    2.验证参数的合法性
+    3.校验用户的信息是否正确
+    4.查询数据库是否有这个用户
+    4.session保持用户登录状态
+    5.响应数据
+    """
+    # 1.获取用户输入的信息
+    json_dict = request.json
+    mobile = json_dict.get('mobile')
+    password = json_dict.get('password')
+
+    # 2.验证参数合法性
+    if not all([mobile,password]):
+        return jsonify(reeno=RET.PARAMERR,errmsg='参数不能为空')
+    if not re.match(r'^1[345678][0-9]{9}$',mobile):
+        return jsonify(reeno=RET.PARAMERR,errmsg='手机格式不正确')
+
+    # 查询数据库用户是否存在
+    try:
+        user = User.query.filter(User.mobile==mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(reeno=RET.DBERR,errmsg='查询数据库出错')
+    if not user:
+        return jsonify(reeno=RET.NODATA,errmsg='用户或者密码错误')
+
+    # 校验密码是否输入有错，flask提供的密码检验方法，跟传进来的比较就行
+    if not user.check_password(password):
+        return jsonify(reeno=RET.NODATA,errmsg='密码或者用户名错误')
+
+    # session保持用户登录状态
+    session["user_id"] = user.id
+    session['name'] = user.name
+    session['mobile'] = user.mobile
+
+    return jsonify(reeno=RET.OK,errmsg='登录成功')
+
+
 
 
 @api.route('/users',methods=['POST'])
@@ -47,6 +97,8 @@ def register():
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(reeno=RET.DBERR,errmsg='获取服务器验证码错误')
+
+
 
     # 对比用户输入的验证码，通过的话就进行注册功能
     if sms_code != sms_code_server:

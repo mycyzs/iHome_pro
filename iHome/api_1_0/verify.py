@@ -12,6 +12,7 @@ from flask import request
 
 from iHome import constants
 from iHome import redis_strict
+from iHome.models import User
 from iHome.sendsms import ScpS
 from iHome.utils.captcha.captcha import captcha
 from iHome.api_1_0 import api
@@ -40,6 +41,17 @@ def send_sms():
     ImageCode = json_dict.get('ImageCode')
     uuid = json_dict.get('uuid')
     current_app.logger.debug(uuid)
+
+    # 发送短信的时候，如果该手机号已经注册就不再发送短信类
+    # 手机号码已经注册就不可以再次注册了
+    try:
+        user = User.query.filter(User.mobile == mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(reeno=RET.DBERR, errmsg='查询数据库出错')
+    if user:
+        return jsonify(reeno=RET.DATAEXIST, errmsg='用户已存在')
+
     # 2.判断是否缺少参数，并对手机号格式进行校验
     if not all([mobile, ImageCode, uuid]):
         return jsonify(errno=RET.PARAMERR, errmsg='参数不能为空')

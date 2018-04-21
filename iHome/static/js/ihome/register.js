@@ -171,8 +171,8 @@ $(document).ready(function () {
 
              success:function (result) {
                  //响应成功
-                 if(result.errno == '0'){
-                     alert(result.errmsg)
+                 if(result.reeno == '0'){
+                     alert(result.errmsg);
                      location.href = '/';
                  }else {
                      alert(result.errmsg);

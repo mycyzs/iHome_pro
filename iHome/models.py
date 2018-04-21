@@ -38,6 +38,20 @@ class User(BaseModel, db.Model):
     def password(self, value):  # value ：接受外界调用setter方法时传入的数据
         self.password_hash = generate_password_hash(value)
 
+    # 给对象定义一个密码检验的方法，登录的时候可用于密码检验,
+    def check_password(self,password):
+        return check_password_hash(self.password_hash,password)
+
+    # 封装一个向视图函数传递参数的字典，方法调用
+    def to_dict(self):
+        datas = {
+            'name':self.name,
+            'mobile':self.mobile,
+            'avatar_url':constants.QINIU_DOMIN_PREFIX + (self.avatar_url if self.avatar_url else ''),
+            'user_id':self.id
+        }
+        return datas
+
 
 class Area(BaseModel, db.Model):
     """城区"""

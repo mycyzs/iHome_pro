@@ -25,5 +25,35 @@ $(document).ready(function() {
             $("#password-err").show();
             return;
         }
+        //封装参数
+       var params = {
+            'mobile':mobile,
+            'password':passwd
+        };
+
+        //发起ajax请求
+        $.ajax({
+            url:'/api/1.0/sessions',
+            type:'post',
+            data:JSON.stringify(params),
+            contentType:'application/json',
+            headers:{'X-CSRFToken':getCookie('csrf_token')},
+            success:function (response) {
+                if(response.reeno == '0'){
+                    location.href = '/';
+                }else {
+                    alert(response.errmsg)
+                }
+
+            }
+
+        })
+
+
+
     });
+
+
+
+
 })
