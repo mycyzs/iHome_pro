@@ -14,9 +14,15 @@ from iHome.models import User
 from iHome.utils.response_code import RET
 
 
+"""处理退出"""
+@api.route('/sessions',methods=['DELETE'])
+def logout():
+    """退出即把session数据删除，没有保持的公路状态"""
+    session.pop('user_id')
+    session.pop('mobile')
+    session.pop('name')
 
-
-
+    return jsonify(reeno=RET.OK,errmsg='退出成功')
 
 @api.route('/sessions',methods=['POST'])
 def login():
@@ -121,6 +127,11 @@ def register():
         """回滚操作"""
         db.session.rollback()
         return jsonify(reeno=RET.DBERR,errmsg='保存信息错误')
+
+    """注册即登录，生成注册时数据的保持状态"""
+    session['user_id'] = user.id
+    session['name'] = user.name
+    session['mobile'] = user.mobile
 
     # 注册成功，响应
     return jsonify(reeno=RET.OK,errmsg='注册成功')

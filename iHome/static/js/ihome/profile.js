@@ -35,6 +35,7 @@ $(document).ready(function () {
         event.preventDefault();
 
             //对于file类型，模拟表单的提交，方便读取input里面的file值
+        //m模拟表单提交就不用自己收集数据类，表单会默认收集数据
             $(this).ajaxSubmit({
 
             url:'/api/1.0/users/avatar',

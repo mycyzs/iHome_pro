@@ -3,13 +3,41 @@ function getCookie(name) {
     return r ? r[1] : undefined;
 }
 
-// TODO: 点击推出按钮时执行的函数
+// TODO: 点击退出按钮时执行的函数
 function logout() {
+    //发起delete请求,跟登录共用一个路由地址
+    $.ajax({
+        url:'/api/1.0/sessions',
+        type:'delete',
+        headers:{'X-CSRFToken':getCookie('csrf_token')},
+        success:function (response) {
+            if (response.reeno == '0') {
+                location.href = '/';
+            } else if (response.reeno == '4101') {
+                location.href = 'login.html';
+            } else {
+                alert(response.errmsg);
+            }
+        }
+    })
     
 }
 
 $(document).ready(function(){
 
     // TODO: 在页面加载完毕之后去加载个人信息
+    //获取用户信息显示
+    $.get('/api/1.0/users',function (response) {
+        if(response.reeno == '0'){
+            // 渲染用户名和手机号
+            $('#user-name').html(response.data.name);
+            $('#user-mobile').html(response.data.mobile);
+            $('#user-avatar').attr('src',response.data.avatar_url)
+        } else if (response.errno == '4101') {
+            location.href = 'login.html';
+        } else {
+            alert(response.errmsg);
+        }
+    })
 
 });

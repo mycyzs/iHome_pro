@@ -52,6 +52,15 @@ class User(BaseModel, db.Model):
         }
         return datas
 
+    # 封装用户实名认证的参数方法
+    def real_name_data(self):
+        datas = {
+            'real_name':self.real_name,
+            'id_card':self.id_card
+        }
+        return datas
+
+
 
 class Area(BaseModel, db.Model):
     """城区"""
