@@ -198,6 +198,7 @@ class HouseImage(BaseModel, db.Model):
 class Order(BaseModel, db.Model):
     """订单"""
 
+
     __tablename__ = "ih_order_info"
 
     id = db.Column(db.Integer, primary_key=True)  # 订单编号

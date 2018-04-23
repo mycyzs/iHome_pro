@@ -20,12 +20,13 @@ def upload_image(image_data):
     # 说明：参数2传入None,表示让七牛云给我们生成数据的唯一标识key
     ret, info = qiniu.put_data(token, None, image_data)
 
-    # 判断上传图片是否成功
+    # 判断上传图片是否成功,上传成功会返回200的状态码
     if info.status_code == 200:
         key = ret.get('key')
         return key  # 每一个数据用key来标识，七牛云域名+key可以取到数据
     else:
         raise Exception('上传图片失败')
+
 
         # print 'RET',ret
         # print 'INFO',info
