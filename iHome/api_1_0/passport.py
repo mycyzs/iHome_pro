@@ -4,11 +4,13 @@ import re
 
 from flask import Flask, jsonify
 from flask import current_app
+from flask import g
 from flask import json
 from flask import request
 from flask import session
 
 from iHome import redis_strict, db
+from iHome.utils.common import check_login
 from . import api
 from iHome.models import User
 from iHome.utils.response_code import RET
@@ -135,3 +137,19 @@ def register():
 
     # 注册成功，响应
     return jsonify(reeno=RET.OK,errmsg='注册成功')
+
+
+#
+"""以登录的用户首页显示用户名"""
+@api.route('/sessions',methods=['GET'])
+def check_logins():
+    """判断用户是否登录
+    从session中获取数据
+    """
+    """获取数据"""
+
+    name = session.get('name')
+    if not name:
+        return jsonify(reeno=RET.PARAMERR,errmsg='用户未登录')
+
+    return jsonify(reeno=RET.OK,errmsg='ok',data = {'name':name})

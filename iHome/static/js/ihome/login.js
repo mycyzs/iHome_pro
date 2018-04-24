@@ -40,7 +40,7 @@ $(document).ready(function() {
             headers:{'X-CSRFToken':getCookie('csrf_token')},
             success:function (response) {
                 if(response.reeno == '0'){
-                    location.href = 'my.html';
+                    location.href = '/';
                 }else {
                     alert(response.errmsg)
                 }

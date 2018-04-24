@@ -29,7 +29,10 @@ def check_login(func):
         """
     @wraps(func)
     def set_func(*args,**kwargs):
-        """在这里判断一下用户是否登录，装饰器就是在不改变原来函数的调用以及结果添加一些额外的功能"""
+
+        """在这里判断一下用户是否登录，装饰器就是在不改变原来函数的调用
+        以及结果添加一些额外的功能"""
+
         user_id = session.get('user_id')
 
         if not user_id:
