@@ -185,3 +185,74 @@ def house_detail(houseId):
     house_detail = house.to_full_dict()
 
     return jsonify(reeno=RET.OK,errmsg='ok',data = house_detail)
+
+
+"""显示首页最新的五个房屋，轮播"""
+@api.route('/houses/index')
+def swiper_index():
+    """
+        查询最新的五个房屋
+        查询出来的是对象，转成字典列表
+
+    :return:
+    """
+    # 查询最新5个房子
+    try:
+        houses = House.query.order_by(House.create_time.desc()).limit(constants.HOME_PAGE_MAX_HOUSES)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(reeno=RET.PARAMERR,errmsg='查询出错')
+
+    # 转成字典列表
+    house_dict = []
+    for house in houses:
+        house_dict.append(house.to_basic_dict())
+
+    return jsonify(reeno=RET.OK,errmsg='ok',data = house_dict)
+
+
+"""用户点击搜索之后显示的界面"""
+@api.route('/houses/search')
+def search_house():
+
+    """
+    接受参数，显示该区域所有的房屋
+    :return:
+    """
+    # 1.接受参数
+    aid = request.args.get('aid')
+    # 获取排序规则；new:根据发布时间倒叙；booking：根据订单量倒叙；price-inc:根据价格由低到高；price-des：根据价格由高到低
+    sk = request.args.get('sk','')
+    # 打印一下
+    current_app.logger.debug(sk)
+    try:
+        # 得到basequery对象
+        house_query = House.query
+        # 用户有没有选择区域都可以
+        if aid:
+            house_query = house_query.filter(House.area_id == aid)
+
+        # 根据用户选择排序房屋
+        if sk == 'booking':  # 根据订单量倒叙
+            house_query = house_query.order_by(House.order_count.desc())
+        elif sk == 'price-inc':  # 根据价格由低到高
+            house_query = house_query.order_by(House.price.asc())
+        elif sk == 'price-des':  # 根据价格由高到低
+            house_query = house_query.order_by(House.price.desc())
+        else:  # 默认就是new,根据发布时间倒叙
+            house_query = house_query.order_by(House.create_time.desc())
+
+        # 获取所有的房屋
+        houses = house_query.all()
+
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(reeno=RET.PARAMERR,errmsg='查找房屋失败')
+
+    # 转成字典列表
+    house_list = []
+
+    for house in houses:
+        house_list.append(house.to_basic_dict())
+
+    return jsonify(reeno=RET.OK,errmsg='ok',data = house_list)

@@ -1,11 +1,11 @@
 //模态框居中的控制
-function centerModals(){
-    $('.modal').each(function(i){   //遍历每一个模态框
-        var $clone = $(this).clone().css('display', 'block').appendTo('body');    
+function centerModals() {
+    $('.modal').each(function (i) {   //遍历每一个模态框
+        var $clone = $(this).clone().css('display', 'block').appendTo('body');
         var top = Math.round(($clone.height() - $clone.find('.modal-content').height()) / 2);
         top = top > 0 ? top : 0;
         $clone.remove();
-        $(this).find('.modal-content').css("margin-top", top-30);  //修正原先已经有的30个像素
+        $(this).find('.modal-content').css("margin-top", top - 30);  //修正原先已经有的30个像素
     });
 }
 
@@ -24,7 +24,7 @@ function setStartDate() {
             startDate: startDate,
             format: "yyyy-mm-dd"
         });
-        $("#end-date").on("changeDate", function() {
+        $("#end-date").on("changeDate", function () {
             $("#end-date-input").val(
                 $(this).datepicker("getFormattedDate")
             );
@@ -32,6 +32,18 @@ function setStartDate() {
         $(".end-date").show();
     }
     $("#start-date-modal").modal("hide");
+}
+
+function swiper() {
+    // TODO: 数据设置完毕后,需要设置幻灯片对象，开启幻灯片滚动
+    var mySwiper = new Swiper('.swiper-container', {
+        loop: true,
+        autoplay: 2000,
+        autoplayDisableOnInteraction: false,
+        pagination: '.swiper-pagination',
+        paginationClickable: true
+    });
+
 }
 
 function setEndDate() {
@@ -48,7 +60,7 @@ function goToSearchPage(th) {
     url += ("aid=" + $(th).attr("area-id"));
     url += "&";
     var areaName = $(th).attr("area-name");
-    if (undefined == areaName) areaName="";
+    if (undefined == areaName) areaName = "";
     url += ("aname=" + areaName);
     url += "&";
     url += ("sd=" + $(th).attr("start-date"));
@@ -57,48 +69,55 @@ function goToSearchPage(th) {
     location.href = url;
 }
 
-$(document).ready(function(){
+$(document).ready(function () {
     // TODO: 检查用户的登录状态
-    $.get('/api/1.0/sessions',function (response) {
-        if(response.reeno == '0'){
+    $.get('/api/1.0/sessions', function (response) {
+        if (response.reeno == '0') {
 
             //把登录注册隐藏
             $(".top-bar>.register-login").hide();
             //把用户名显示
             $('.top-bar>.user-info').show();
             $('.top-bar>.user-info a').html(response.data.name)
-        }else {
+        } else {
             $(".top-bar>.register-login").show();
 
         }
     })
 
     // TODO: 获取幻灯片要展示的房屋基本信息
+    $.get('/api/1.0/houses/index', function (response) {
+        if (response.reeno == '0') {
+            //显示轮播图
+            var html = template('swiper-houses-tmpl', {'houses': response.data})
+            $('.swiper-wrapper').html(html)
+            swiper()
 
+        } else {
+            alert(response.errmsg)
+        }
+    })
 
-
-
-
-
-
-    // TODO: 数据设置完毕后,需要设置幻灯片对象，开启幻灯片滚动
-    var mySwiper = new Swiper ('.swiper-container', {
-        loop: true,
-        autoplay: 2000,
-        autoplayDisableOnInteraction: false,
-        pagination: '.swiper-pagination',
-        paginationClickable: true
-    });
 
     // TODO: 获取城区信息,获取完毕之后需要设置城区按钮点击之后相关操作
+    //用之前发布房源时获取的城区函数即刻
+    $.get('/api/1.0/areas', function (response) {
+        if (response.reeno == '0') {
+            var html = template('area-list-tmpl', {'areas': response.data})
+            $('.area-list').html(html)
+            // TODO: 城区按钮点击之后相关操作
+            $(".area-list a").click(function (e) {
+                $("#area-btn").html($(this).html());
+                $(".search-btn").attr("area-id", $(this).attr("area-id"));
+                $(".search-btn").attr("area-name", $(this).html());
+                $("#area-modal").modal("hide");
+            });
 
-    // TODO: 城区按钮点击之后相关操作
-    $(".area-list a").click(function(e){
-        $("#area-btn").html($(this).html());
-        $(".search-btn").attr("area-id", $(this).attr("area-id"));
-        $(".search-btn").attr("area-name", $(this).html());
-        $("#area-modal").modal("hide");
-    });
+        } else {
+            response.errmsg
+        }
+    })
+
 
     $('.modal').on('show.bs.modal', centerModals);      //当模态框出现的时候
     $(window).on('resize', centerModals);               //当窗口大小变化的时候
@@ -108,7 +127,7 @@ $(document).ready(function(){
         startDate: "today",
         format: "yyyy-mm-dd"
     });
-    $("#start-date").on("changeDate", function() {
+    $("#start-date").on("changeDate", function () {
         var date = $(this).datepicker("getFormattedDate");
         $("#start-date-input").val(date);
     });
