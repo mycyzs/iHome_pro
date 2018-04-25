@@ -7,9 +7,9 @@ function getCookie(name) {
     return r ? r[1] : undefined;
 }
 
-function decodeQuery(){
+function decodeQuery() {
     var search = decodeURI(document.location.search);
-    return search.replace(/(^\?)/, '').split('&').reduce(function(result, item){
+    return search.replace(/(^\?)/, '').split('&').reduce(function (result, item) {
         values = item.split('=');
         result[values[0]] = values[1];
         return result;
@@ -17,14 +17,15 @@ function decodeQuery(){
 }
 
 function showErrorMsg() {
-    $('.popup_con').fadeIn('fast', function() {
-        setTimeout(function(){
-            $('.popup_con').fadeOut('fast',function(){}); 
-        },1000) 
+    $('.popup_con').fadeIn('fast', function () {
+        setTimeout(function () {
+            $('.popup_con').fadeOut('fast', function () {
+            });
+        }, 1000)
     });
 }
 
-$(document).ready(function(){
+$(document).ready(function () {
     // TODO: 判断用户是否登录
 
     $(".input-daterange").datepicker({
@@ -33,7 +34,7 @@ $(document).ready(function(){
         language: "zh-CN",
         autoclose: true
     });
-    $(".input-daterange").on("changeDate", function(){
+    $(".input-daterange").on("changeDate", function () {
         var startDate = $("#start-date").val();
         var endDate = $("#end-date").val();
 
@@ -42,16 +43,68 @@ $(document).ready(function(){
         } else {
             var sd = new Date(startDate);
             var ed = new Date(endDate);
-            days = (ed - sd)/(1000*3600*24) + 1;
+            days = (ed - sd) / (1000 * 3600 * 24);
             var price = $(".house-text>p>span").html();
             var amount = days * parseFloat(price);
-            $(".order-amount>span").html(amount.toFixed(2) + "(共"+ days +"晚)");
+            $(".order-amount>span").html(amount.toFixed(2) + "(共" + days + "晚)");
         }
     });
     var queryData = decodeQuery();
     var houseId = queryData["hid"];
 
     // TODO: 获取房屋的基本信息
+    $.get('/api/1.0/houses/'+houseId, function (response) {
+        if (response.reeno == '0') {
+            $('.house-info>img').attr('src', response.data.img_urls[0]);
+            $('.house-text>h3').html(response.data.title);
+            $('.house-text span').html((response.data.price/100).toFixed(2));
+        } else {
+            alert(response.errmsg);
+        }
+    });
 
     // TODO: 订单提交
+    //监听提交订单按钮点击事件
+    $('.submit-btn').on('click', function (response) {
+        //获取入住和离开时间
+        var start_date = $('#start-date').val()
+        var end_date = $('#end-date').val()
+        //校验参数
+        if (!start_date) {
+            alert('请输入入住时间');
+            return;
+        }
+        if (!end_date) {
+            alert('请输入离开时间');
+            return;
+        }
+
+        //构造参数
+        params = {
+            'house_id':houseId,
+            'start_date':start_date,
+            'end_date':end_date
+        }
+
+        //发起ajax请求
+        $.ajax({
+            url:'/api/1.0/orders',
+            type:'post',
+            data:JSON.stringify(params),
+            contentType:'application/json',
+            headers:{'X-CSRFToken':getCookie('csrf_token')},
+            success:function (response) {
+                if(response.reeno == '0'){
+                    //响应成功显示orders.html
+                    location.href = '/orders.html'
+                }else {
+                    alert(response.errmsg)
+                }
+            }
+
+        })
+
+    })
+
+
 })
