@@ -26,10 +26,45 @@ $(document).ready(function(){
             var html = template('orders-list-tmpl',{'orders':response.data})
             $('.orders-list').html(html)
               // TODO: 查询成功之后需要设置评论的相关处理
+            //点击发表评论
             $(".order-comment").on("click", function(){
                 var orderId = $(this).parents("li").attr("order-id");
                 $(".modal-comment").attr("order-id", orderId);
     });
+
+            //输入评论点击确定时候
+            $(".modal-comment").on('click', function () {
+                var orderId = $(".modal-comment").attr("order-id");
+                var comment = $('#comment').val();
+                if (!comment) {
+                    alert('请输入评论信息');
+                    return;
+                }
+                $.ajax({
+                    url: '/api/1.0/orders/comment/'+ orderId,
+                    type: 'post',
+                    data: JSON.stringify({'comment':comment}),
+                    contentType: 'application/json',
+                    headers: {'X-CSRFToken':getCookie('csrf_token')},
+                    success:function (response) {
+                        if (response.reeno == '0') {
+                            $(".orders-list>li[order-id="+ orderId +"]>div.order-content>div.order-text>ul li:eq(4)>span").html("已完成");
+                            $("ul.orders-list>li[order-id="+ orderId +"]>div.order-title>div.order-operate").hide();
+                            $("#comment-modal").modal("hide");
+                        } else if (response.reeno == '4101') {
+                            location.href = 'login.html';
+                        } else {
+                            alert(response.errmsg);
+                        }
+                    }
+                });
+            });
+
+
+
+
+
+
 
         }else {
             alert(response.errmsg)

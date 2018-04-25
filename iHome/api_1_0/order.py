@@ -189,3 +189,45 @@ def accept_order(order_id):
         return jsonify(reeno=RET.DBERR,errmsg='保存失败')
 
     return jsonify(reeno=RET.OK,errmsg='ok')
+
+
+"""用户评价"""
+@api.route('/orders/comment/<order_id>',methods=['POST'])
+@check_login
+def order_comment(order_id):
+    """
+    0.判断用户是否登录
+    1.接受参数：order_id，comment,并校验
+    2.使用order_id查询"待评价"的订单数据
+    3.修改订单状态为"已完成"。并保存评价信息
+    4.保存数据到数据库
+    5.响应评价结果
+
+    """
+    # 获取参数
+    comment = request.json.get('comment')
+    if not comment:
+        return jsonify(reeno=RET.PARAMERR,errmsg='缺少必传参数')
+
+    # 根据order_id，查询订单信息
+    try:
+        order = Order.query.filter(Order.id == order_id,Order.status == 'WAIT_COMMENT',Order.user_id == g.user_id).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(reeno=RET.DBERR,errmsg='查询出错')
+    if not order:
+        return jsonify(reeno=RET.NODATA,errmsg='订单不存在')
+
+    # 修改订单状态/
+    order.status = 'COMPLETE'
+    order.comment = comment
+
+    # 更新数据库
+    try:
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(reeno=RET.DBERR,errmsg='保存数据出错')
+
+    return jsonify(reeno=RET.OK,errmsg='ok')
