@@ -44,6 +44,16 @@ $(document).ready(function(){
             //显示房子详情
             var house_detail = template('house-detail-tmpl',{'house':response.data})
             $('.detail-con').html(house_detail)
+            //如果房子的主人不等于当前的用户，才显示即刻预订
+            if(response.data.user_id != response.login_user_id){
+
+                 // 展示即可预定标签
+                $('.book-house').show();
+                $('.book-house').attr('href', 'booking.html?hid='+response.data.hid);
+            }else {
+                //隐藏刚
+                 $('.book-house').hide();
+            }
 
         }else {
             alert(response.errmsg)

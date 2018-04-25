@@ -1,13 +1,15 @@
 # _*_ coding:utf-8 _*_
 """这里是房屋相关的功能方法"""
+import datetime
 from flask import current_app, jsonify
 from flask import g
 from flask import request
+from flask import session
 
 from iHome import constants
 from iHome import db
 from iHome.api_1_0 import api
-from iHome.models import Area, House, Facility, HouseImage
+from iHome.models import Area, House, Facility, HouseImage, Order
 from iHome.utils.common import check_login
 from iHome.utils.response_code import RET
 from iHome.utils.storage_images import upload_image
@@ -184,7 +186,11 @@ def house_detail(houseId):
     # 构造房子详情数据
     house_detail = house.to_full_dict()
 
-    return jsonify(reeno=RET.OK,errmsg='ok',data = house_detail)
+    # 尝试获取用户id，有可能不存在
+    login_user_id = session.get('user_id',-1)
+
+
+    return jsonify(reeno=RET.OK,errmsg='ok',data = house_detail,login_user_id = login_user_id)
 
 
 """显示首页最新的五个房屋，轮播"""
@@ -225,6 +231,29 @@ def search_house():
     sk = request.args.get('sk','')
     # 打印一下
     current_app.logger.debug(sk)
+    # 获取当前要显示的页码
+    p = request.args.get('p')
+    # 获取用户入住和离开的时间
+    sd = request.args.get('sd')
+    ed = request.args.get('ed')
+    start_date=None
+    end_date = None
+    # 对页数进行验证
+    try:
+        p = int(p)
+        # 验证用户的入住和离开时间
+        if sd:      #把字符串转成时间格式
+            start_date = datetime.datetime.strptime(sd,'%Y-%m-%d')
+        if ed:
+            end_date = datetime.datetime.strptime(ed,'%Y-%m-%d')
+        if start_date and end_date:         #如果这两个都有，就断言
+            assert start_date < end_date,Exception('入住时间有误') #主动抛出异常，让后面的代码可以捕获到
+
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(reeno=RET.PARAMERR,errmsg='参数错误')
+
+
     try:
         # 得到basequery对象
         house_query = House.query
@@ -232,6 +261,20 @@ def search_house():
         if aid:
             house_query = house_query.filter(House.area_id == aid)
 
+        conflict_orders = []
+        # 根据用户选中的入住和离开时间，筛选出对应的房屋信息（需要将已经在订单中的时间冲突的房屋过滤掉）
+        if start_date and end_date:
+            conflict_orders = Order.query.filter(start_date<Order.end_date,end_date>Order.begin_date).all()
+        elif start_date:
+            conflict_orders = Order.query.filter(start_date<Order.end_date).all()
+        elif end_date:
+            conflict_orders = Order.query.filter(end_date>Order.begin_date).all()
+
+        # 查询出这部分冲突订单中的房子,先有数据再进行分页或者是排序，大到小
+        if conflict_orders:
+            house_ids = [order.house_id for order in conflict_orders]
+        # 查询出不包含这些house_id的房屋
+            house_query = house_query.filter(House.id.notin_(house_ids))
         # 根据用户选择排序房屋
         if sk == 'booking':  # 根据订单量倒叙
             house_query = house_query.order_by(House.order_count.desc())
@@ -243,7 +286,14 @@ def search_house():
             house_query = house_query.order_by(House.create_time.desc())
 
         # 获取所有的房屋
-        houses = house_query.all()
+        # houses = house_query.all()
+        # 使用分页查询指定条数的数据:参数1，是要读取的页码，参数2，是每页数据条数，参数3，默认有错不输出
+        # 一般分页会放在把数据查询出来之后
+        paginate = house_query.paginate(p,constants.HOUSE_LIST_PAGE_CAPACITY,False)
+        # 获取当前页的模型对象
+        houses = paginate.items
+        # 获取总的页数
+        total_page = paginate.pages
 
     except Exception as e:
         current_app.logger.error(e)
@@ -255,4 +305,10 @@ def search_house():
     for house in houses:
         house_list.append(house.to_basic_dict())
 
-    return jsonify(reeno=RET.OK,errmsg='ok',data = house_list)
+    # 从新构造参数，字典加多一层
+    respinse_dict = {
+        'house':house_list,
+        'total_page':total_page
+    }
+
+    return jsonify(reeno=RET.OK,errmsg='ok',data = respinse_dict)

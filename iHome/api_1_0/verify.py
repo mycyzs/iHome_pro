@@ -77,10 +77,10 @@ def send_sms():
     current_app.logger.debug(sms_code)
 
     # 调用单例类发送短信
-
-    result = ScpS().sendTemplateSMS(mobile, [sms_code, 5], 1)
-    if result != 1:
-        return jsonify(reeno=RET.PARAMERR, errmsg='发送短信失败')
+    #
+    # result = ScpS().sendTemplateSMS(mobile, [sms_code, 5], 1)
+    # if result != 1:
+    #     return jsonify(reeno=RET.PARAMERR, errmsg='发送短信失败')
 
     # 保存自己生成的验证码到redis，方便后面注册时做验证,设置过期时间
     print (type(mobile), type(sms_code))

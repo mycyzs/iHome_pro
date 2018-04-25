@@ -30,7 +30,7 @@ function updateFilterDateDisplay() {
 // 更新房源列表信息
 // action表示从后端请求的数据在前端的展示方式
 // 默认采用追加方式
-// action=renew 代表页面数据清空从新展示
+// action=renew 代表页面数据清空从新展示,空的话在数据后面加载数据
 function updateHouseData(action) {
 
     var areaId = $(".filter-area>li.active").attr("area-id");
@@ -50,15 +50,23 @@ function updateHouseData(action) {
     $.get('/api/1.0/houses/search', params, function (response) {
 
         // TODO 1. 当得到响应后，需要取消正在加载数据的标记 house_data_querying = false
-        // house_data_querying = false;
+        house_data_querying = false;
 
         if (response.reeno == '0') {
             // TODO 2. 当后端分页成功后，需要将总页数传给前端 total_page
-            // total_page = response.data.total_page;
+            total_page = response.data.total_page;
 
             // 渲染搜索页面
-            var html = template('house-list-tmpl', {'houses': response.data});
-            $('.house-list').html(html);
+            var html = template('house-list-tmpl', {'houses': response.data.house});
+            //重新加载页面图片
+            if(action == 'renew'){
+                   $('.house-list').html(html);
+            }else {
+                //有上拉动作的时候在后面把数据街上
+                cur_page = next_page
+                $('.house-list').append(html)
+            }
+
 
 
         } else {
