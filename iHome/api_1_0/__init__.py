@@ -7,5 +7,5 @@ from flask import Blueprint
 api = Blueprint('api_1_0',__name__,url_prefix='/api/1.0')
 
 """执行这个文件的时候导入并且执行"""
-from iHome.api_1_0 import index,verify,passport,userinfo,house,order
+from iHome.api_1_0 import verify,passport,userinfo,house,order
 """执行创建验证码的文件"""

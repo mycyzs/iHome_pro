@@ -6,7 +6,7 @@ from flask import g
 from flask import request
 from flask import session
 
-from iHome import constants
+from iHome import constants, redis_strict
 from iHome import db
 from iHome.api_1_0 import api
 from iHome.models import Area, House, Facility, HouseImage, Order
@@ -17,7 +17,19 @@ from iHome.utils.storage_images import upload_image
 
 @api.route('/areas', methods=['GET'])
 def get_areas():
-    """查询所有的城区,得到的是对象"""
+    """查询所有的城区,得到的是对象
+    """
+    """
+        既然有缓存就首先尝试获取redis中的缓存，提高效率，减轻网站的压力
+    """
+    try:
+        area_list = redis_strict.get('Areas')
+        if area_list:
+            return jsonify(reeno=RET.OK,errmsg='ok')
+    except Exception as e:
+        current_app.logger.error(e)
+
+    # 直接查询所有的城区
     try:
         areas = Area.query.all()
     except Exception as e:
@@ -28,6 +40,16 @@ def get_areas():
     area_list = []
     for area in areas:
         area_list.append(area.to_dict())
+
+    # 把数据缓存起来，因为后面也有用到区域信息，把缓存放到redis数据库
+    # 就算缓存失败也不要return，因为会阻碍后面代码的执行
+    try:
+        redis_strict.set('Areas',area_list,constants.AREA_INFO_REDIS_EXPIRES)
+    except Exception as e:
+        current_app.logger.error(e)
+
+
+
 
     return jsonify(reeno=RET.OK, errmsg='ok', data=area_list)
 
